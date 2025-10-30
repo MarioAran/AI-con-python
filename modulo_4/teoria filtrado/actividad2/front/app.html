@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Recomendación de Animes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results {
+            grid-column: 1 / -1;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .results h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .anime-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .anime-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .anime-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #3498db;
+        }
+
+        .anime-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .anime-card p {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b3d7ff;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎌 Sistema de Recomendación de Animes</h1>
+            <p>Descubre nuevos animes basados en tus preferencias</p>
+        </div>
+
+        <div class="content">
+            <!-- Panel de Control -->
+            <div class="card">
+                <h3>🛠️ Panel de Control</h3>
+                <div class="form-group">
+                    <button onclick="initializeAPI()" id="initBtn">🚀 Inicializar API</button>
+                </div>
+                <div class="form-group">
+                    <button onclick="trainModel()" id="trainBtn">🧠 Entrenar Modelo</button>
+                </div>
+                <div class="form-group">
+                    <button onclick="checkHealth()" id="healthBtn">❤️ Verificar Estado</button>
+                </div>
+                <div class="form-group">
+                    <button onclick="getVersion()" id="versionBtn">📋 Obtener Versión</button>
+                </div>
+            </div>
+
+            <!-- Recomendaciones -->
+            <div class="card">
+                <h3>🎯 Obtener Recomendaciones</h3>
+                <div class="form-group">
+                    <label for="userId">ID de Usuario:</label>
+                    <input type="number" id="userId" placeholder="Ingresa el ID de usuario (ej: 1, 2, 3...)" min="1">
+                </div>
+                <button onclick="getRecommendations()" id="recommendBtn">🔍 Buscar Recomendaciones</button>
+            </div>
+
+            <!-- Resultados -->
+            <div class="results">
+                <h3>📊 Resultados</h3>
+                <div id="statusMessages"></div>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Procesando solicitud...</p>
+                </div>
+                <div id="resultsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000'; // Cambia esta URL según tu configuración
+
+        // Función para mostrar mensajes de estado
+        function showMessage(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessages');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // Función para mostrar/ocultar loading
+        function toggleLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        // Función para inicializar la API
+        async function initializeAPI() {
+            toggleLoading(true);
+            try {
+                const response = await fetch(API_BASE_URL + '/');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('✅ API inicializada correctamente', 'success');
+                    console.log('Datos de inicialización:', data);
+                } else {
+                    throw new Error(data.error || 'Error al inicializar API');
+                }
+            } catch (error) {
+                showMessage('❌ Error: ' + error.message, 'error');
+                console.error('Error:', error);
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        // Función para entrenar el modelo
+        async function trainModel() {
+            toggleLoading(true);
+            try {
+                const response = await fetch(API_BASE_URL + '/train', {
+                    method: 'GET'
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('✅ Modelo entrenado correctamente', 'success');
+                } else {
+                    throw new Error(data.error || 'Error al entrenar el modelo');
+                }
+            } catch (error) {
+                showMessage('❌ Error: ' + error.message, 'error');
+                console.error('Error:', error);
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        // Función para verificar el estado del servicio
+        async function checkHealth() {
+            toggleLoading(true);
+            try {
+                const response = await fetch(API_BASE_URL + '/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('✅ Servicio funcionando correctamente', 'success');
+                } else {
+                    throw new Error('Servicio no disponible');
+                }
+            } catch (error) {
+                showMessage('❌ Error: ' + error.message, 'error');
+                console.error('Error:', error);
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        // Función para obtener la versión
+        async function getVersion() {
+            toggleLoading(true);
+            try {
+                const response = await fetch(API_BASE_URL + '/version');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(`📋 Versión del modelo: ${data.Version}`, 'success');
+                } else {
+                    throw new Error('Error al obtener versión');
+                }
+            } catch (error) {
+                showMessage('❌ Error: ' + error.message, 'error');
+                console.error('Error:', error);
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        // Función para obtener recomendaciones
+        async function getRecommendations() {
+            const userId = document.getElementById('userId').value;
+            
+            if (!userId) {
+                showMessage('⚠️ Por favor, ingresa un ID de usuario', 'error');
+                return;
+            }
+
+            toggleLoading(true);
+            try {
+                const response = await fetch(API_BASE_URL + '/recommend/' + userId);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayRecommendations(data);
+                    showMessage(`✅ Recomendaciones encontradas para usuario ${userId}`, 'success');
+                } else {
+                    throw new Error(data.error || 'Error al obtener recomendaciones');
+                }
+            } catch (error) {
+                showMessage('❌ Error: ' + error.message, 'error');
+                console.error('Error:', error);
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        // Función para mostrar las recomendaciones
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('resultsContainer');
+            
+            if (Object.keys(recommendations).length === 0) {
+                container.innerHTML = '<p>No se encontraron recomendaciones para este usuario.</p>';
+                return;
+            }
+
+            let html = '<div class="anime-grid">';
+            
+            // Convertir el objeto de recomendaciones a un array y ordenar por score
+            const recommendationsArray = Object.entries(recommendations).map(([animeId, score]) => ({
+                animeId,
+                score: score.toFixed(4)
+            })).sort((a, b) => b.score - a.score);
+            
+            recommendationsArray.forEach(rec => {
+                html += `
+                    <div class="anime-card">
+                        <h4>Anime ID: ${rec.animeId}</h4>
+                        <p><strong>Score de recomendación:</strong> ${rec.score}</p>
+                        <p><strong>Confianza:</strong> ${(rec.score * 100).toFixed(2)}%</p>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Event listeners para mejorar la UX
+        document.getElementById('userId').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                getRecommendations();
+            }
+        });
+
+        // Mensaje inicial
+        showMessage('👋 Bienvenido al Sistema de Recomendación de Animes. Comienza inicializando la API.', 'info');
+    </script>
+</body>
+</html>
