@@ -6,11 +6,11 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 app = Flask(__name__)
+func.unir_archivos()
 rating = '../data/rating.csv'
 animes = '../data/anime.csv'
-df_rating = pd.DataFrame([])
 df_anime =  pd.DataFrame([])
-#list of global variables
+df_rating = pd.DataFrame([])
 
 corrAnime = None
 user_rating = None
@@ -18,7 +18,7 @@ simCandidates = None
 @app.route('/')
 def home():
     global df_rating, df_anime 
-    df_rating, df_anime =  func.read_files(rating, animes)
+    df_rating, df_anime =  func.read_files(rating ,animes)
     
     print(f"this is a test for try read files CSV........ \n{df_rating.head(3)} \n\n {df_anime.head(3)}\nthis is the en of  test for try read files CSV........")
     if not df_rating.empty and not df_anime.empty:

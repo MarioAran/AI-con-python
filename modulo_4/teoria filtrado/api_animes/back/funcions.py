@@ -1,7 +1,25 @@
 import re 
 import pandas as pd 
+import os 
 
-
+def unir_archivos():
+    ruta_archivo = "../data/rating.csv"
+    
+    # Verificar si el archivo ya existe
+    if os.path.exists(ruta_archivo):
+        print("El archivo rating_completo.csv ya existe. Cargando desde disco...")
+    else:
+        print("Creando archivo rating_completo.csv...")
+        # Leer los archivos
+        df1 = pd.read_csv("../data/rating_1.csv")
+        df2 = pd.read_csv("../data/rating_2.csv")
+        
+        # Unirlos
+        df_completo = pd.concat([df1, df2], ignore_index=True)
+        
+        # Guardar el archivo unido
+        df_completo.to_csv(ruta_archivo, index=False)
+        print("Archivo creado exitosamente.")        
 
 def text_cleaning(text):
     text = re.sub(r'&quot;', '', text)
@@ -12,11 +30,12 @@ def text_cleaning(text):
     text = re.sub(r'&amp;', 'and', text)
     return text
 
-def read_files(rating, anime ):
+def read_files(rating, anime):
     try:
         r_cols = ['user_id', 'anime_id', 'rating']
         df_ratings = pd.read_csv(rating, usecols=r_cols, encoding = 'utf-8')
         df_ratings = df_ratings[df_ratings['rating'] != -1]
+        
         
         c_cols = ['anime_id', 'name', 'type']
         df_anime = pd.read_csv(anime, usecols=c_cols,encoding = 'utf-8')
