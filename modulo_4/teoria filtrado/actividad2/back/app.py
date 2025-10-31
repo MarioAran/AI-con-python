@@ -6,14 +6,23 @@ from datetime import datetime
 from models.recommendation_model import AnimeRecommendationModel
 
 app = Flask(__name__)
-
 model = AnimeRecommendationModel()
 model_version = "1.0.0"
 model_timestamp = None
-anime_csv = '../data/anime.csv'
-rating_csv = '../data/rating.csv'
-animes_df = pd.read_csv(anime_csv)
-ratings_df = pd.read_csv(rating_csv)
+
+
+def unir_archivos():
+    # Leer los archivos
+    df1 = pd.read_csv("../data/rating_1.csv")
+    df2 = pd.read_csv("../data/rating_2.csv")
+    
+    # Unirlos
+    df_completo = pd.concat([df1, df2], ignore_index=True)
+    
+    # Guardar el archivo unido
+    return df_completo
+animes_df = pd.read_csv('../data/anime.csv')
+ratings_df = unir_archivos()
 #model.fit(ratings_df, animes_df, min_ratings=100)
 if model is not None:
     @app.route('/')
