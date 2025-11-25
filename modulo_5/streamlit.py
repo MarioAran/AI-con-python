@@ -23,18 +23,18 @@ for msg in st.session_state.mensajes:
 
 # Input de usuario
 
-    pregunta = st.chat_input("Escribe tu mensaje:")
+pregunta = st.chat_input("Escribe tu mensaje:")
 
-    if pregunta:
-        # Mostrar y almacenar mensaje del usuario
-        with st.chat_message("user"):
-            st.markdown(pregunta)
+if pregunta:
+    # Mostrar y almacenar mensaje del usuario
+    with st.chat_message("user"):
+        st.markdown(pregunta)
 
-        st.session_state.mensajes.append(HumanMessage(content=pregunta))
+    st.session_state.mensajes.append(HumanMessage(content=pregunta))
 
-        respuesta = chat_model.invoke(st.session_state.mensajes)
-        pregunta = st.chat_input(respuesta.content)
-        with st.chat_message("assistant"):
-            st.markdown(respuesta.content)
+    respuesta = chat_model.invoke(st.session_state.mensajes)
+    pregunta = st.chat_input(respuesta.content)
+    with st.chat_message("assistant"):
+        st.markdown(respuesta.content)
 
-        st.session_state.mensajes.append(respuesta)
+    st.session_state.mensajes.append(respuesta)
