@@ -33,7 +33,6 @@ if pregunta:
     st.session_state.mensajes.append(HumanMessage(content=pregunta))
 
     respuesta = chat_model.invoke(st.session_state.mensajes)
-    pregunta = st.chat_input(respuesta.content)
     with st.chat_message("assistant"):
         st.markdown(respuesta.content)
 
