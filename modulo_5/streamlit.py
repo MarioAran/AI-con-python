@@ -1,39 +1,55 @@
 import streamlit as st
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.schema import HumanMessage  # Import correcto según la versión
 
-# Configuración inicial
-st.set_page_config(page_title="Chatbot Básico", page_icon="🤖")
-st.title("🤖 Chatbot - paso 2 - con LangChain")
-st.markdown("Este es un *chatbot de ejemplo* construido con LangChain + Streamlit.")
+st.set_page_config(layout="wide")
+st.title("Chat con Slider de Temperatura")
 
-chat_model = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# Inicializar el historial de mensajes en session_state
-if "mensajes" not in st.session_state:
-    st.session_state.mensajes = []
+def clean_history():
+    st.session_state.messages = []
 
+col_chat, col_slider = st.columns([3, 1])
 
-# Renderizar historial existente
-for msg in st.session_state.mensajes:
+with col_chat:
+    # Mostrar historial
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-    role = "assistant" if isinstance(msg, AIMessage) else "user"
-    with st.chat_message(role):
-        st.markdown(msg.content)
+    prompt = st.chat_input("Escribe tu mensaje aquí...")
+    if prompt:
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
 
-# Input de usuario
+        # Temperatura
+        current_temperature = st.session_state.get("temperature_slider_value", 0.7)
 
-pregunta = st.chat_input("Escribe tu mensaje:")
+        # Inicializa modelo
+        chat_model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=current_temperature)
 
-if pregunta:
-    # Mostrar y almacenar mensaje del usuario
-    with st.chat_message("user"):
-        st.markdown(pregunta)
+        # Genera respuesta
+        response = chat_model.agenerate([[HumanMessage(content=prompt)]])
+        assistant_response = response.generations[0][0].text  # Extrae el texto real
 
-    st.session_state.mensajes.append(HumanMessage(content=pregunta))
+        st.session_state.messages.append({"role": "assistant", "content": assistant_response})
+        with st.chat_message("assistant"):
+            st.markdown(assistant_response)
 
-    respuesta = chat_model.invoke(st.session_state.mensajes)
-    with st.chat_message("assistant"):
-        st.markdown(respuesta.content)
-
-    st.session_state.mensajes.append(respuesta)
+with col_slider:
+    st.subheader("Configuración de IA")
+    temperature = st.slider(
+        "Temperatura de la IA",
+        min_value=0.0,
+        max_value=1.0,
+        value=0.7,
+        step=0.1,
+        key="temperature_slider"
+    )
+    st.session_state.temperature_slider_value = temperature
+    st.write(f"Temperatura seleccionada: **{temperature}**")
+    st.markdown("---")
+    st.button("Limpiar chat", key="clean_chat_button", on_click=clean_history)
